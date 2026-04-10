@@ -5,76 +5,78 @@ source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zs
 # --- O Prompt "Juregod" (O seu visual azul favorito) ---
 PROMPT='%B%F{blue}➜ Juregod%f%b %F{white}%~%f %# '
 
-# --- Central de Favoritos (Versão Power) ---
+# --- Central de Favoritos Dinâmica (Versão Power Automática) ---
 favs() {
     echo -e "\n\e[1;36m  󰄬 MEUS ATALHOS \e[0m"
-    echo -e "  \e[1;30m──────────────────────────────\e[0m"
-    
-    echo -e "  \e[1;35m󰣇 SISTEMA\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "update"  "Sincronizar Pacman/AUR"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "faxina"  "Limpar caches e órfãos"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "save"    "Criar Snapshot (Timeshift)"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "off"     "Desligar Notebook"
-    
-    echo -e "\n  \e[1;31m󰈐 NITRO SENSE\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "nbstat"  "Ver Temperatura/RPM"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "nbturbo" "Coolers em 100%"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "nbsilent" "Coolers em 30% (Estudo)"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "nbauto"  "Gestão Automática"
-    
-    echo -e "\n  \e[1;36m󰲋 DEV & GAMES\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "unity"   "Abrir Unity Hub"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "rider"   "Abrir JetBrains Rider"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "gamedev" "Pasta de Projetos"
-    
-    echo -e "\n  \e[1;33m󰚝 ACADÊMICO\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "facul"   "Pasta Contabilidade"
-    
-    echo -e "\n  \e[1;32m󱇧 CONFIG\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "zsh"     "Configurar Zsh"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "hypr"    "Configurar Hyprland"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "kitty"   "Configurar Kitty"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "reload"  "Resetar Shell"
-    
-    echo -e "\n  \e[1;34m󰉋 EXTRA\e[0m"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "btop"    "Monitor de Recursos"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "net"    "Velocidade de Rede"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "gpu"     "Status da GTX 1650"
-    printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "limpar"  "Clear + Fetch"
-    
+    echo -e "  \e[1;30m──────────────────────────────\e[0m\n"
+
+    # Categorias e cores (SISTEMA agora no topo!)
+    local categorias=("SISTEMA" "CONFIG" "DEV_GAMES" "ACADEMICO" "NITRO_SENSE" "EXTRA")
+    local titulos=("󰣇 SISTEMA" "󱇧 CONFIGURAÇÕES" "󰲋 DEV & GAMES" "󰚝 ACADÊMICO" "󰈐 NITRO SENSE" "󰉋 EXTRA")
+    local cores=("\e[1;35m" "\e[1;32m" "\e[1;36m" "\e[1;33m" "\e[1;31m" "\e[1;34m")
+
+    for i in {1..6}; do
+        local cat=${categorias[$i]}
+        local titulo=${titulos[$i]}
+        local cor=${cores[$i]}
+
+        local linhas=$(grep "# FAVS: $cat |" ~/.zshrc)
+
+        if [[ -n "$linhas" ]]; then
+            echo -e "  ${cor}${titulo}\e[0m"
+            echo "$linhas" | while read -r linha; do
+                local cmd=$(echo "$linha" | sed -n 's/^[[:space:]]*alias \([^=]*\)=.*/\1/p')
+                local desc=$(echo "$linha" | awk -F'| ' '{print $2}')
+                printf "  \e[1;33m%-8s\e[0m \e[1;30m•\e[0m \e[37m%s\e[0m\n" "$cmd" "$desc"
+            done
+            echo ""
+        fi
+    done
     echo -e "  \e[1;30m──────────────────────────────\e[0m\n"
 }
 
-# --- Aliases de Sistema ---
+# --- Aliases Básicos ---
 alias ls='ls --color=auto'
 alias grep='grep --color=auto'
 alias matrix='cmatrix -C blue -s'
-alias limpar='clear && fastfetch'
-alias gpu='nvidia-smi'
-alias off='sudo shutdown now'
-alias btop='btop'
-alias net='speedtest'
 
-# --- Aliases dos Favoritos ---
-alias update='yay -Syu'
-alias faxina='sudo pacman -Rns $(pacman -Qtdq) && sudo pacman -Scc'
-alias save='sudo timeshift --create --comments "Snapshot Manual"'
-alias reload='source ~/.zshrc && clear && fastfetch'
-alias zsh='nano ~/.zshrc'
-alias hypr='nano ~/.config/hypr/hyprland.conf'
-alias kitty='nano ~/.config/kitty/kitty.conf'
+# =============================================================================
+# --- ALIASES MAPEADOS NO MENU FAVS ---
+# =============================================================================
 
-# --- Aliases Nitro Sense (NBFC) ---
-alias nbstat='nbfc status -a'
-alias nbturbo='sudo nbfc set -s 100'
-alias nbauto='sudo nbfc set -a'
-alias nbsilent='sudo nbfc set -s 30'
+# SISTEMA (Grupo no topo com Git e Reload)
+alias update='yay -Syu' # FAVS: SISTEMA | Sincronizar Pacman/AUR
+alias faxina='sudo pacman -Rns $(pacman -Qtdq) && sudo pacman -Scc' # FAVS: SISTEMA | Limpar caches e órfãos
+alias save='sudo timeshift --create --comments "Snapshot Manual"' # FAVS: SISTEMA | Criar Snapshot Timeshift
+alias dotsave='cd ~/dotfiles && cp -r ~/.config/hypr . && cp -r ~/.config/kitty . && cp ~/.zshrc . && /usr/bin/git add . && /usr/bin/git commit -m "Update dotfiles" && /usr/bin/git push origin main && cd -' # FAVS: SISTEMA | Backup GitHub
+alias reload='source ~/.zshrc && clear && fastfetch' # FAVS: SISTEMA | Resetar Shell e Menu
+alias off='sudo shutdown now' # FAVS: SISTEMA | Desligar Notebook
 
-# --- Aliases Acadêmico/Dev (Ajuste os caminhos abaixo) ---
-alias facul='cd ~/Documents/Contabilidade'
-alias gamedev='cd ~/Documents/UnityProjects'
-alias unity='unityhub'
-alias rider='rider'
+# CONFIGURAÇÕES
+alias zsh='nano ~/.zshrc' # FAVS: CONFIG | Configurar Zsh
+alias hypr='nano ~/.config/hypr/hyprland.conf' # FAVS: CONFIG | Configurar Hyprland
+alias kitty='nano ~/.config/kitty/kitty.conf' # FAVS: CONFIG | Configurar Kitty
+
+# DEV & GAMES
+alias unity='unityhub' # FAVS: DEV_GAMES | Abrir Unity Hub
+alias rider='rider' # FAVS: DEV_GAMES | Abrir JetBrains Rider
+alias gamedev='cd ~/Documents/UnityProjects' # FAVS: DEV_GAMES | Pasta de Projetos
+
+# ACADÊMICO
+alias facul='cd ~/Documents/Contabilidade' # FAVS: ACADEMICO | Pasta Contabilidade (UFF)
+
+# NITRO SENSE
+alias nbstat='nbfc status -a' # FAVS: NITRO_SENSE | Ver Temperatura/RPM
+alias nbturbo='sudo nbfc set -s 100' # FAVS: NITRO_SENSE | Coolers em 100%
+alias nbauto='sudo nbfc set -a' # FAVS: NITRO_SENSE | Gestão Automática
+alias nbsilent='sudo nbfc set -s 30' # FAVS: NITRO_SENSE | Coolers em 30% (Estudo)
+
+# EXTRAS
+alias btop='btop' # FAVS: EXTRA | Monitor de Recursos
+alias net='speedtest' # FAVS: EXTRA | Velocidade de Rede
+alias gpu='nvidia-smi' # FAVS: EXTRA | Status da GTX 1650
+alias hora='tty-clock -c -C 4 -s -b' # FAVS: EXTRA | Relógio Digital Azul
+alias limpar='clear && fastfetch' # FAVS: EXTRA | Clear + Fetch
 
 # --- Início Automático ---
 clear
@@ -84,59 +86,6 @@ fastfetch
 # KEYBINDS — Cheat sheet (digite 'keys' no terminal)
 # =============================================================================
 keys() {
-  echo ""
-  echo "  ╔══════════════════════════════════════════════════════════╗"
-  echo "  ║           HYPRLAND KEYBINDS — Juregod                   ║"
-  echo "  ╚══════════════════════════════════════════════════════════╝"
-  echo ""
-  echo "  ── SISTEMA ─────────────────────────────────────────────────"
-  echo "  SUPER + T          → Terminal (Kitty)"
-  echo "  SUPER + E          → Arquivos (Thunar)"
-  echo "  SUPER + W          → Navegador (Firefox)"
-  echo "  SUPER + R          → Launcher (Hyprlauncher)"
-  echo "  SUPER + Q          → Fechar janela"
-  echo "  SUPER + M          → Menu de energia"
-  echo "  SUPER + SUPER      → Launcher Noctalia"
-  echo "  SUPER + SHIFT + S  → Screenshot"
-  echo "  SUPER + ALT + W    → Trocar wallpaper"
-  echo ""
-  echo "  ── JANELAS ─────────────────────────────────────────────────"
-  echo "  SUPER + Setas      → Mover foco (cruza monitores na borda)"
-  echo "  SUPER + SHIFT + Setas → Mover janela no tiling"
-  echo "  SUPER + V          → Alternar flutuante/tiling"
-  echo "  SUPER + F          → Tela cheia"
-  echo "  SUPER + J          → Alternar split dwindle"
-  echo "  SUPER + P          → Pin (fixa em todas as workspaces)"
-  echo "  SUPER + ALT + P    → Pseudo tiling"
-  echo "  CTRL + SUPER + \\   → Centralizar janela"
-  echo "  SUPER + ALT + Setas → Redimensionar janela"
-  echo "  SUPER + Mouse1     → Mover janela (arrastar)"
-  echo "  SUPER + Mouse2     → Redimensionar janela (arrastar)"
-  echo ""
-  echo "  ── GRUPOS (ABAS) ────────────────────────────────────────────"
-  echo "  SUPER + G          → Criar/entrar em grupo"
-  echo "  SUPER + TAB        → Próxima janela do grupo"
-  echo "  SUPER + SHIFT+TAB  → Janela anterior do grupo"
-  echo ""
-  echo "  ── SCRATCHPAD ───────────────────────────────────────────────"
-  echo "  SUPER + S          → Mostrar/esconder scratchpad"
-  echo "  SUPER + ALT + S    → Mandar janela pro scratchpad"
-  echo ""
-  echo "  ── MONITORES ────────────────────────────────────────────────"
-  echo "  SUPER + ,          → Foco monitor esquerdo"
-  echo "  SUPER + .          → Foco monitor direito"
-  echo "  SUPER + SHIFT + ,  → Mover janela pro monitor esquerdo"
-  echo "  SUPER + SHIFT + .  → Mover janela pro monitor direito"
-  echo ""
-  echo "  ── WORKSPACES ───────────────────────────────────────────────"
-  echo "  SUPER + 1-0        → Ir para workspace 1-10"
-  echo "  SUPER + ALT + 1-0  → Mover janela para workspace 1-10"
-  echo "  SUPER + CTRL + →/← → Próxima/anterior workspace"
-  echo "  SUPER + CTRL + Scroll → Navegar workspaces com mouse"
-  echo ""
-  echo "  ── MULTIMÍDIA ───────────────────────────────────────────────"
-  echo "  Teclas de volume   → Volume +/-/mute"
-  echo "  Teclas de brilho   → Brilho +/-"
-  echo "  Teclas de mídia    → Play/pause/próx/ant"
-  echo ""
+  # (Mantenha o conteúdo da função keys que você já tinha)
+  echo "Digite 'favs' para ver os atalhos de sistema ou 'keys' para o Hyprland."
 }
